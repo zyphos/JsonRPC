@@ -30,7 +30,6 @@ class Server
     {
         // OVH workaround
         if (isset($_SERVER['REMOTE_USER'])) {
-
             list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) = explode(':', base64_decode(substr($_SERVER['REMOTE_USER'], 6)));
         }
 
