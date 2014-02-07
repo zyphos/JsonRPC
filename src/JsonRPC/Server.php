@@ -105,9 +105,9 @@ class Server
             if (isset($request_params[$name])) {
 
                 $params[$name] = $request_params[$name];
-            }
-            else {
-
+            } else if ($p->isDefaultValueAvailable()) {
+		continue;
+            } else {
                 return false;
             }
         }
