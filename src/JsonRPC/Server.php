@@ -2,18 +2,54 @@
 
 namespace JsonRPC;
 
+use ReflectionFunction;
+use Closure;
+
+/**
+ * JsonRPC server class
+ *
+ * @package JsonRPC
+ * @author Frderic Guillot
+ * @license Unlicense http://unlicense.org/
+ */
 class Server
 {
+    /**
+     * Data received from the client
+     *
+     * @access private
+     * @var string
+     */
     private $payload;
+
+    /**
+     * List of procedures
+     *
+     * @static
+     * @access private
+     * @var array
+     */
     static private $procedures = array();
 
-
+    /**
+     * Constructor
+     *
+     * @access public
+     * @param  string   $payload   Client data
+     */
     public function __construct($payload = '')
     {
         $this->payload = $payload;
     }
 
-
+    /**
+     * IP based client restrictions
+     *
+     * Return an HTTP error 403 if the client is not allowed
+     *
+     * @access public
+     * @param  array   $hosts   List of hosts
+     */
     public function allowHosts(array $hosts) {
 
         if (! in_array($_SERVER['REMOTE_ADDR'], $hosts)) {
@@ -25,7 +61,14 @@ class Server
         }
     }
 
-
+    /**
+     * HTTP Basic authentication
+     *
+     * Return an HTTP error 401 if the client is not allowed
+     *
+     * @access public
+     * @param  array   $users   Map of username/password
+     */
     public function authentication(array $users)
     {
         // OVH workaround
@@ -45,32 +88,52 @@ class Server
         }
     }
 
-
-    public function register($name, \Closure $callback)
+    /**
+     * Register a new procedure
+     *
+     * @access public
+     * @param  string   $name       Procedure name
+     * @param  closure  $callback   Callback
+     */
+    public function register($name, Closure $callback)
     {
         self::$procedures[$name] = $callback;
     }
 
-
+    /**
+     * Unregister a procedure
+     *
+     * @access public
+     * @param  string   $name       Procedure name
+     */
     public function unregister($name)
     {
         if (isset(self::$procedures[$name])) {
-
             unset(self::$procedures[$name]);
         }
     }
 
-
+    /**
+     * Unregister all procedures
+     *
+     * @access public
+     */
     public function unregisterAll()
     {
         self::$procedures = array();
     }
 
-
+    /**
+     * Return the response to the client
+     *
+     * @access public
+     * @param  array    $data      Data to send to the client
+     * @param  array    $payload   Incoming data
+     * @return string
+     */
     public function getResponse(array $data, array $payload = array())
     {
         if (! array_key_exists('id', $payload)) {
-
             return '';
         }
 
@@ -81,11 +144,19 @@ class Server
 
         $response = array_merge($response, $data);
 
-        header('Content-Type: application/json');
+        @header('Content-Type: application/json');
         return json_encode($response);
     }
 
-
+    /**
+     * Map arguments to the procedure
+     *
+     * @access public
+     * @param  array    $request_params      Incoming arguments
+     * @param  array    $method_params       Procedure arguments
+     * @param  array    $params              Arguments to pass to the callback
+     * @return bool
+     */
     public function mapParameters(array $request_params, array $method_params, array &$params)
     {
         // Positional parameters
@@ -103,11 +174,12 @@ class Server
             $name = $p->getName();
 
             if (isset($request_params[$name])) {
-
                 $params[$name] = $request_params[$name];
-            } else if ($p->isDefaultValueAvailable()) {
-		continue;
-            } else {
+            }
+            else if ($p->isDefaultValueAvailable()) {
+                continue;
+            }
+            else {
                 return false;
             }
         }
@@ -115,17 +187,20 @@ class Server
         return true;
     }
 
-
+    /**
+     * Parse incoming requests
+     *
+     * @access public
+     * @return string
+     */
     public function execute()
     {
         // Parse payload
         if (empty($this->payload)) {
-
             $this->payload = file_get_contents('php://input');
         }
 
         if (is_string($this->payload)) {
-
             $this->payload = json_decode($this->payload, true);
         }
 
@@ -201,7 +276,7 @@ class Server
         $callback = self::$procedures[$this->payload['method']];
         $params = array();
 
-        $reflection = new \ReflectionFunction($callback);
+        $reflection = new ReflectionFunction($callback);
 
         if (isset($this->payload['params'])) {
 
