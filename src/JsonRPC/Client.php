@@ -2,11 +2,13 @@
 
 namespace JsonRPC;
 
+use BadFunctionCallException;
+
 /**
  * JsonRPC client class
  *
  * @package JsonRPC
- * @author Frderic Guillot
+ * @author Frederic Guillot
  * @license Unlicense http://unlicense.org/
  */
 class Client
@@ -100,6 +102,7 @@ class Client
      * Execute
      *
      * @access public
+     * @throws BadFunctionCallException  Exception thrown when a bad request is made (missing argument/procedure)
      * @param  string   $procedure   Procedure name
      * @param  array    $params      Procedure arguments
      * @return mixed
@@ -124,7 +127,7 @@ class Client
             return $result['result'];
         }
 
-        return null;
+        throw new BadFunctionCallException('Bad Request');
     }
 
     /**

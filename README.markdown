@@ -65,7 +65,7 @@ require 'JsonRPC/Client.php';
 use JsonRPC\Client;
 
 $client = new Client('http://localhost/server.php');
-$result = $client->execute('addition', array(3, 5));
+$result = $client->execute('addition', [3, 5]);
 
 var_dump($result);
 ```
@@ -80,13 +80,13 @@ require 'JsonRPC/Client.php';
 use JsonRPC\Client;
 
 $client = new Client('http://localhost/server.php');
-$result = $client->execute('random', array('end' => 10, 'start' => 1));
+$result = $client->execute('random', ['end' => 10, 'start' => 1]);
 
 var_dump($result);
 ```
 
 Arguments are called in the right order.
-If there is an error, the `execute()` method return `NULL`.
+If there is a Json-RPC protocol error, the `execute()` method throw an exception `BadFunctionCallException`.
 
 Example with shortcut methods:
 
@@ -98,7 +98,7 @@ require 'JsonRPC/Client.php';
 use JsonRPC\Client;
 
 $client = new Client('http://localhost/server.php');
-$result = $client->random([50, 100]);
+$result = $client->random(50, 100);
 
 var_dump($result);
 ```
@@ -117,7 +117,7 @@ use JsonRPC\Server;
 $server = new Server;
 
 // IP client restrictions
-$server->allowHosts(array('192.168.0.1', '127.0.0.1'));
+$server->allowHosts(['192.168.0.1', '127.0.0.1']);
 
 // Procedures registration
 
@@ -143,7 +143,7 @@ use JsonRPC\Server;
 $server = new Server;
 
 // List of users to allow
-$server->authentication(array('jsonrpc' => 'toto'));
+$server->authentication(['jsonrpc' => 'toto']);
 
 // Procedures registration
 
@@ -166,6 +166,5 @@ $client = new Client('http://localhost/server.php');
 
 // Credentials
 $client->authentication('jsonrpc', 'toto');
-
-$result = $client->execute('addition', array('a' => 2, 'b' => 2));
+$result = $client->execute('addition', ['a' => 2, 'b' => 2]);
 ```
