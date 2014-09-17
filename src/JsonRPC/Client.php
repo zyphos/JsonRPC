@@ -46,6 +46,14 @@ class Client
     private $password;
 
     /**
+     * Enable debug output to the php error log
+     *
+     * @access public
+     * @var boolean
+     */
+    public $debug = false;
+
+    /**
      * Default HTTP headers to send to the server
      *
      * @access private
@@ -156,6 +164,11 @@ class Client
 
         $result = curl_exec($ch);
         $response = json_decode($result, true);
+
+        if ($this->debug) {
+            error_log('==> Request: '.PHP_EOL.json_encode($payload, JSON_PRETTY_PRINT));
+            error_log('==> Response: '.PHP_EOL.json_encode($response, JSON_PRETTY_PRINT));
+        }
 
         curl_close($ch);
 

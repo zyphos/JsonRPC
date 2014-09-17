@@ -103,6 +103,44 @@ $result = $client->random(50, 100);
 var_dump($result);
 ```
 
+### Enable client debugging
+
+You can enable the debug to see the JSON request and response:
+
+```php
+<?php
+
+require 'JsonRPC/Client.php';
+
+use JsonRPC\Client;
+
+$client = new Client('http://localhost/server.php');
+$client->debug = true;
+```
+
+The debug output is sent to the PHP's system logger.
+You can configure the log destination in your `php.ini`.
+
+Output example:
+
+```json
+==> Request:
+{
+    "jsonrpc": "2.0",
+    "method": "removeCategory",
+    "id": 486782327,
+    "params": [
+        1
+    ]
+}
+==> Response:
+{
+    "jsonrpc": "2.0",
+    "id": 486782327,
+    "result": true
+}
+```
+
 ### IP based client restrictions
 
 The server can allow only some IP adresses:
