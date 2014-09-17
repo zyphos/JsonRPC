@@ -1,0 +1,252 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Json-RPC client/server library for PHP by fguillot</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/fguillot/JsonRPC">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/fguillot/JsonRPC/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/fguillot/JsonRPC/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>Json-RPC client/server library for PHP</h1>
+          <p>Simple Json-RPC PHP client/server that just works.</p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/fguillot">fguillot</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
+        </div>
+
+        <h1>
+<a name="jsonrpc-php-client-and-server" class="anchor" href="#jsonrpc-php-client-and-server"><span class="octicon octicon-link"></span></a>JsonRPC PHP Client and Server</h1>
+
+<p>A simple Json-RPC client/server that just works.</p>
+
+<h2>
+<a name="features" class="anchor" href="#features"><span class="octicon octicon-link"></span></a>Features</h2>
+
+<ul>
+<li>JSON-RPC 2.0 protocol only</li>
+<li>The server support batch requests and notifications</li>
+<li>Authentication and IP based client restrictions</li>
+<li>Minimalist: there is only 2 files</li>
+<li>License: Unlicense <a href="http://unlicense.org/">http://unlicense.org/</a>
+</li>
+</ul><h2>
+<a name="requirements" class="anchor" href="#requirements"><span class="octicon octicon-link"></span></a>Requirements</h2>
+
+<ul>
+<li>The only dependency is the cURL extension</li>
+<li>PHP &gt;= 5.3</li>
+</ul><h2>
+<a name="author" class="anchor" href="#author"><span class="octicon octicon-link"></span></a>Author</h2>
+
+<p><a href="http://fredericguillot.com">Frédéric Guillot</a></p>
+
+<h2>
+<a name="examples" class="anchor" href="#examples"><span class="octicon octicon-link"></span></a>Examples</h2>
+
+<h3>
+<a name="server" class="anchor" href="#server"><span class="octicon octicon-link"></span></a>Server</h3>
+
+<div class="highlight highlight-php"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+
+<span class="k">require</span> <span class="s1">'JsonRPC/Server.php'</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">JsonRPC\Server</span><span class="p">;</span>
+
+<span class="nv">$server</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Server</span><span class="p">;</span>
+
+<span class="c1">// Procedures registration</span>
+
+<span class="nv">$server</span><span class="o">-&gt;</span><span class="na">register</span><span class="p">(</span><span class="s1">'addition'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nv">$a</span><span class="p">,</span> <span class="nv">$b</span><span class="p">)</span> <span class="p">{</span>
+
+    <span class="k">return</span> <span class="nv">$a</span> <span class="o">+</span> <span class="nv">$b</span><span class="p">;</span>
+<span class="p">});</span>
+
+<span class="nv">$server</span><span class="o">-&gt;</span><span class="na">register</span><span class="p">(</span><span class="s1">'random'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nv">$start</span><span class="p">,</span> <span class="nv">$end</span><span class="p">)</span> <span class="p">{</span>
+
+    <span class="k">return</span> <span class="nb">mt_rand</span><span class="p">(</span><span class="nv">$start</span><span class="p">,</span> <span class="nv">$end</span><span class="p">);</span>
+<span class="p">});</span>
+
+<span class="c1">// Return the response to the client</span>
+<span class="k">echo</span> <span class="nv">$server</span><span class="o">-&gt;</span><span class="na">execute</span><span class="p">();</span>
+</pre></div>
+
+<h3>
+<a name="client" class="anchor" href="#client"><span class="octicon octicon-link"></span></a>Client</h3>
+
+<p>Example with positional parameters:</p>
+
+<div class="highlight highlight-php"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+
+<span class="k">require</span> <span class="s1">'JsonRPC/Client.php'</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">JsonRPC\Client</span><span class="p">;</span>
+
+<span class="nv">$client</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Client</span><span class="p">(</span><span class="s1">'http://localhost/server.php'</span><span class="p">);</span>
+<span class="nv">$result</span> <span class="o">=</span> <span class="nv">$client</span><span class="o">-&gt;</span><span class="na">execute</span><span class="p">(</span><span class="s1">'addition'</span><span class="p">,</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">]);</span>
+
+<span class="nb">var_dump</span><span class="p">(</span><span class="nv">$result</span><span class="p">);</span>
+</pre></div>
+
+<p>Example with named arguments:</p>
+
+<div class="highlight highlight-php"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+
+<span class="k">require</span> <span class="s1">'JsonRPC/Client.php'</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">JsonRPC\Client</span><span class="p">;</span>
+
+<span class="nv">$client</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Client</span><span class="p">(</span><span class="s1">'http://localhost/server.php'</span><span class="p">);</span>
+<span class="nv">$result</span> <span class="o">=</span> <span class="nv">$client</span><span class="o">-&gt;</span><span class="na">execute</span><span class="p">(</span><span class="s1">'random'</span><span class="p">,</span> <span class="p">[</span><span class="s1">'end'</span> <span class="o">=&gt;</span> <span class="mi">10</span><span class="p">,</span> <span class="s1">'start'</span> <span class="o">=&gt;</span> <span class="mi">1</span><span class="p">]);</span>
+
+<span class="nb">var_dump</span><span class="p">(</span><span class="nv">$result</span><span class="p">);</span>
+</pre></div>
+
+<p>Arguments are called in the right order.
+If there is a Json-RPC protocol error, the <code>execute()</code> method throw an exception <code>BadFunctionCallException</code>.</p>
+
+<p>Example with shortcut methods:</p>
+
+<div class="highlight highlight-php"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+
+<span class="k">require</span> <span class="s1">'JsonRPC/Client.php'</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">JsonRPC\Client</span><span class="p">;</span>
+
+<span class="nv">$client</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Client</span><span class="p">(</span><span class="s1">'http://localhost/server.php'</span><span class="p">);</span>
+<span class="nv">$result</span> <span class="o">=</span> <span class="nv">$client</span><span class="o">-&gt;</span><span class="na">random</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">100</span><span class="p">);</span>
+
+<span class="nb">var_dump</span><span class="p">(</span><span class="nv">$result</span><span class="p">);</span>
+</pre></div>
+
+<h3>
+<a name="enable-client-debugging" class="anchor" href="#enable-client-debugging"><span class="octicon octicon-link"></span></a>Enable client debugging</h3>
+
+<p>You can enable the debug to see the JSON request and response:</p>
+
+<div class="highlight highlight-php"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+
+<span class="k">require</span> <span class="s1">'JsonRPC/Client.php'</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">JsonRPC\Client</span><span class="p">;</span>
+
+<span class="nv">$client</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Client</span><span class="p">(</span><span class="s1">'http://localhost/server.php'</span><span class="p">);</span>
+<span class="nv">$client</span><span class="o">-&gt;</span><span class="na">debug</span> <span class="o">=</span> <span class="k">true</span><span class="p">;</span>
+</pre></div>
+
+<p>The debug output is sent to the PHP's system logger.
+You can configure the log destination in your <code>php.ini</code>.</p>
+
+<p>Output example:</p>
+
+<div class="highlight highlight-json"><pre><span class="err">==&gt;</span> <span class="err">Request:</span>
+<span class="p">{</span>
+    <span class="nt">"jsonrpc"</span><span class="p">:</span> <span class="s2">"2.0"</span><span class="p">,</span>
+    <span class="nt">"method"</span><span class="p">:</span> <span class="s2">"removeCategory"</span><span class="p">,</span>
+    <span class="nt">"id"</span><span class="p">:</span> <span class="mi">486782327</span><span class="p">,</span>
+    <span class="nt">"params"</span><span class="p">:</span> <span class="p">[</span>
+        <span class="mi">1</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+<span class="err">==&gt;</span> <span class="err">Response:</span>
+<span class="p">{</span>
+    <span class="nt">"jsonrpc"</span><span class="p">:</span> <span class="s2">"2.0"</span><span class="p">,</span>
+    <span class="nt">"id"</span><span class="p">:</span> <span class="mi">486782327</span><span class="p">,</span>
+    <span class="nt">"result"</span><span class="p">:</span> <span class="kc">true</span>
+<span class="p">}</span>
+</pre></div>
+
+<h3>
+<a name="ip-based-client-restrictions" class="anchor" href="#ip-based-client-restrictions"><span class="octicon octicon-link"></span></a>IP based client restrictions</h3>
+
+<p>The server can allow only some IP adresses:</p>
+
+<div class="highlight highlight-php"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+
+<span class="k">require</span> <span class="s1">'JsonRPC/Server.php'</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">JsonRPC\Server</span><span class="p">;</span>
+
+<span class="nv">$server</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Server</span><span class="p">;</span>
+
+<span class="c1">// IP client restrictions</span>
+<span class="nv">$server</span><span class="o">-&gt;</span><span class="na">allowHosts</span><span class="p">([</span><span class="s1">'192.168.0.1'</span><span class="p">,</span> <span class="s1">'127.0.0.1'</span><span class="p">]);</span>
+
+<span class="c1">// Procedures registration</span>
+
+<span class="p">[</span><span class="o">...</span><span class="p">]</span>
+
+<span class="c1">// Return the response to the client</span>
+<span class="k">echo</span> <span class="nv">$server</span><span class="o">-&gt;</span><span class="na">execute</span><span class="p">();</span>
+</pre></div>
+
+<p>If the client is blocked, you got a 403 Forbidden HTTP response.</p>
+
+<h3>
+<a name="http-basic-authentication" class="anchor" href="#http-basic-authentication"><span class="octicon octicon-link"></span></a>HTTP Basic Authentication</h3>
+
+<p>If you use HTTPS, you can allow client by using a username/password.</p>
+
+<div class="highlight highlight-php"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+
+<span class="k">require</span> <span class="s1">'JsonRPC/Server.php'</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">JsonRPC\Server</span><span class="p">;</span>
+
+<span class="nv">$server</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Server</span><span class="p">;</span>
+
+<span class="c1">// List of users to allow</span>
+<span class="nv">$server</span><span class="o">-&gt;</span><span class="na">authentication</span><span class="p">([</span><span class="s1">'jsonrpc'</span> <span class="o">=&gt;</span> <span class="s1">'toto'</span><span class="p">]);</span>
+
+<span class="c1">// Procedures registration</span>
+
+<span class="p">[</span><span class="o">...</span><span class="p">]</span>
+
+<span class="c1">// Return the response to the client</span>
+<span class="k">echo</span> <span class="nv">$server</span><span class="o">-&gt;</span><span class="na">execute</span><span class="p">();</span>
+</pre></div>
+
+<p>On the client, set credentials like that:</p>
+
+<div class="highlight highlight-php"><pre><span class="o">&lt;?</span><span class="nx">php</span>
+
+<span class="k">require</span> <span class="s1">'JsonRPC/Client.php'</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">JsonRPC\Client</span><span class="p">;</span>
+
+<span class="nv">$client</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Client</span><span class="p">(</span><span class="s1">'http://localhost/server.php'</span><span class="p">);</span>
+
+<span class="c1">// Credentials</span>
+<span class="nv">$client</span><span class="o">-&gt;</span><span class="na">authentication</span><span class="p">(</span><span class="s1">'jsonrpc'</span><span class="p">,</span> <span class="s1">'toto'</span><span class="p">);</span>
+<span class="nv">$result</span> <span class="o">=</span> <span class="nv">$client</span><span class="o">-&gt;</span><span class="na">execute</span><span class="p">(</span><span class="s1">'addition'</span><span class="p">,</span> <span class="p">[</span><span class="s1">'a'</span> <span class="o">=&gt;</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">'b'</span> <span class="o">=&gt;</span> <span class="mi">2</span><span class="p">]);</span>
+</pre></div>
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
