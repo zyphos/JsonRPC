@@ -243,7 +243,7 @@ class Server
      * Handle batch request
      *
      * @access private
-     * @return boolean
+     * @return string
      */
     private function handleBatchRequest()
     {
