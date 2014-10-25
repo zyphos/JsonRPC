@@ -88,7 +88,7 @@ var_dump($result);
 Arguments are called in the right order.
 If there is a Json-RPC protocol error, the `execute()` method throw an exception `BadFunctionCallException`.
 
-Example with shortcut methods:
+Examples with shortcut methods:
 
 ```php
 <?php
@@ -101,6 +101,12 @@ $client = new Client('http://localhost/server.php');
 $result = $client->random(50, 100);
 
 var_dump($result);
+```
+
+The example above use positional arguments for the request and this one use named arguments:
+
+```php
+$result = $client->random(['end' => 10, 'start' => 1]);
 ```
 
 ### Enable client debugging
