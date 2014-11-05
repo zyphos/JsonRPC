@@ -23,6 +23,13 @@ Author
 
 [Frédéric Guillot](http://fredericguillot.com)
 
+Installation with Composer
+--------------------------
+
+```bash
+composer require fguillot/json-rpc dev-master
+```
+
 Examples
 --------
 
@@ -30,8 +37,6 @@ Examples
 
 ```php
 <?php
-
-require 'JsonRPC/Server.php';
 
 use JsonRPC\Server;
 
@@ -59,8 +64,6 @@ Example with positional parameters:
 
 ```php
 <?php
-
-require 'JsonRPC/Client.php';
 
 use JsonRPC\Client;
 
@@ -93,8 +96,6 @@ Examples with shortcut methods:
 ```php
 <?php
 
-require 'JsonRPC/Client.php';
-
 use JsonRPC\Client;
 
 $client = new Client('http://localhost/server.php');
@@ -115,8 +116,6 @@ You can enable the debug to see the JSON request and response:
 
 ```php
 <?php
-
-require 'JsonRPC/Client.php';
 
 use JsonRPC\Client;
 
@@ -154,8 +153,6 @@ The server can allow only some IP adresses:
 ```php
 <?php
 
-require 'JsonRPC/Server.php';
-
 use JsonRPC\Server;
 
 $server = new Server;
@@ -180,8 +177,6 @@ If you use HTTPS, you can allow client by using a username/password.
 ```php
 <?php
 
-require 'JsonRPC/Server.php';
-
 use JsonRPC\Server;
 
 $server = new Server;
@@ -201,8 +196,6 @@ On the client, set credentials like that:
 
 ```php
 <?php
-
-require 'JsonRPC/Client.php';
 
 use JsonRPC\Client;
 
