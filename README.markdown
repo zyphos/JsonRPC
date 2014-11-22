@@ -47,12 +47,10 @@ $server = new Server;
 // Procedures registration
 
 $server->register('addition', function ($a, $b) {
-
     return $a + $b;
 });
 
 $server->register('random', function ($start, $end) {
-
     return mt_rand($start, $end);
 });
 
@@ -62,7 +60,7 @@ echo $server->execute();
 
 Class/Method binding:
 
-```
+```php
 <?php
 
 use JsonRPC\Server;
