@@ -35,6 +35,8 @@ Examples
 
 ### Server
 
+Callback binding:
+
 ```php
 <?php
 
@@ -55,6 +57,32 @@ $server->register('random', function ($start, $end) {
 });
 
 // Return the response to the client
+echo $server->execute();
+```
+
+Class/Method binding:
+
+```
+<?php
+
+use JsonRPC\Server;
+
+class Api
+{
+    public function doSomething($arg1, $arg2 = 3)
+    {
+        return $arg1 + $arg2;
+    }
+}
+
+$server = new Server;
+
+// Bind the method Api::doSomething() to the procedure myProcedure
+$server->bind('myProcedure', 'Api', 'doSomething');
+
+// Use a class instance instead of the class name
+$server->bind('mySecondProcedure', new Api, 'doSomething');
+
 echo $server->execute();
 ```
 
