@@ -374,25 +374,6 @@ class Server
     }
 
     /**
-     * Get the Reflection instance for the procedure
-     *
-     * @access public
-     * @param  string   $procedure    Procedure name
-     * @return ReflectionFunctionAbstract
-     */
-    public function getProcedure($procedure)
-    {
-        if (isset($this->callbacks[$procedure])) {
-            return new ReflectionFunction($this->callbacks[$procedure]);
-        }
-        else if (isset($this->classes[$procedure])) {
-            return new ReflectionMethod($this->classes[$procedure][0], $this->classes[$procedure][1]);
-        }
-
-        throw new BadFunctionCallException('Unable to find the procedure');
-    }
-
-    /**
      * Get procedure arguments
      *
      * @access public
