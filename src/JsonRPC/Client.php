@@ -2,7 +2,9 @@
 
 namespace JsonRPC;
 
+use RuntimeException;
 use BadFunctionCallException;
+use InvalidArgumentException;
 
 /**
  * JsonRPC client class
@@ -44,6 +46,22 @@ class Client
      * @var string
      */
     private $password;
+
+    /**
+     * True for a batch request
+     *
+     * @access public
+     * @var boolean
+     */
+    public $is_batch = false;
+
+    /**
+     * Batch payload
+     *
+     * @access public
+     * @var array
+     */
+    public $batch = array();
 
     /**
      * Enable debug output to the php error log
@@ -112,35 +130,144 @@ class Client
     }
 
     /**
-     * Execute
+     * Start a batch request
      *
      * @access public
-     * @throws BadFunctionCallException  Exception thrown when a bad request is made (missing argument/procedure)
+     * @return Client
+     */
+    public function batch()
+    {
+        $this->is_batch = true;
+        $this->batch = array();
+
+        return $this;
+    }
+
+    /**
+     * Send a batch request
+     *
+     * @access public
+     * @return array
+     */
+    public function send()
+    {
+        $this->is_batch = false;
+
+        return $this->parseResponse(
+            $this->doRequest($this->batch)
+        );
+    }
+
+    /**
+     * Execute a procedure
+     *
+     * @access public
      * @param  string   $procedure   Procedure name
      * @param  array    $params      Procedure arguments
      * @return mixed
      */
     public function execute($procedure, array $params = array())
     {
-        $id = mt_rand();
+        if ($this->is_batch) {
+            $this->batch[] = $this->prepareRequest($procedure, $params);
+            return $this;
+        }
 
+        return $this->parseResponse(
+            $this->doRequest($this->prepareRequest($procedure, $params))
+        );
+    }
+
+    /**
+     * Prepare the payload
+     *
+     * @access public
+     * @param  string   $procedure   Procedure name
+     * @param  array    $params      Procedure arguments
+     * @return array
+     */
+    public function prepareRequest($procedure, array $params = array())
+    {
         $payload = array(
             'jsonrpc' => '2.0',
             'method' => $procedure,
-            'id' => $id
+            'id' => mt_rand()
         );
 
         if (! empty($params)) {
             $payload['params'] = $params;
         }
 
-        $result = $this->doRequest($payload);
+        return $payload;
+    }
 
-        if (isset($result['id']) && $result['id'] == $id && array_key_exists('result', $result)) {
-            return $result['result'];
+    /**
+     * Parse the response and return the procedure result
+     *
+     * @access public
+     * @param  array     $payload
+     * @return mixed
+     */
+    public function parseResponse(array $payload)
+    {
+        if ($this->isBatchResponse($payload)) {
+
+            $results = array();
+
+            foreach ($payload as $response) {
+                $results[] = $this->getResult($response);
+            }
+
+            return $results;
         }
 
-        throw new BadFunctionCallException('Bad Request');
+        return $this->getResult($payload);
+    }
+
+    /**
+     * Return true if we have a batch response
+     *
+     * @access public
+     * @param  array    $payload
+     * @return boolean
+     */
+    private function isBatchResponse(array $payload)
+    {
+        return array_keys($payload) === range(0, count($payload) - 1);
+    }
+
+    /**
+     * Get a RPC call result
+     *
+     * @access public
+     * @param  array    $payload
+     * @return mixed
+     */
+    public function getResult(array $payload)
+    {
+        if (isset($payload['error']['code'])) {
+            $this->handleRpcErrors($payload['error']['code']);
+        }
+
+        return isset($payload['result']) ? $payload['result'] : null;
+    }
+
+    /**
+     * Throw an exception according the RPC error
+     *
+     * @access public
+     * @param  integer    $code
+     */
+    public function handleRpcErrors($code)
+    {
+        switch ($code) {
+            case -32601:
+                throw new BadFunctionCallException('Procedure not found');
+            case -32602:
+                throw new InvalidArgumentException('Invalid arguments');
+            default:
+                throw new RuntimeException('Invalid request/response');
+        }
     }
 
     /**
@@ -167,8 +294,14 @@ class Client
             curl_setopt($ch, CURLOPT_USERPWD, $this->username.':'.$this->password);
         }
 
-        $result = curl_exec($ch);
-        $response = json_decode($result, true);
+        $http_body = curl_exec($ch);
+        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        if ($http_code === 401 || $http_code === 403) {
+            throw new RuntimeException('Access denied');
+        }
+
+        $response = json_decode($http_body, true);
 
         if ($this->debug) {
             error_log('==> Request: '.PHP_EOL.json_encode($payload, JSON_PRETTY_PRINT));

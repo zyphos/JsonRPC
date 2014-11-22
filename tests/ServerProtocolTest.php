@@ -12,7 +12,6 @@ class ServerProtocolTest extends PHPUnit_Framework_TestCase
             return $minuend - $subtrahend;
         };
 
-
         $server = new Server('{"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": 1}');
         $server->register('subtract', $subtract);
 
@@ -20,7 +19,6 @@ class ServerProtocolTest extends PHPUnit_Framework_TestCase
             json_decode('{"jsonrpc": "2.0", "result": 19, "id": 1}', true),
             json_decode($server->execute(), true)
         );
-
 
         $server = new Server('{"jsonrpc": "2.0", "method": "subtract", "params": [23, 42], "id": 1}');
         $server->register('subtract', $subtract);
@@ -45,7 +43,6 @@ class ServerProtocolTest extends PHPUnit_Framework_TestCase
             json_decode('{"jsonrpc": "2.0", "result": 19, "id": 3}', true),
             json_decode($server->execute(), true)
         );
-
 
         $server = new Server('{"jsonrpc": "2.0", "method": "subtract", "params": {"minuend": 42, "subtrahend": 23}, "id": 4}');
         $server->register('subtract', $subtract);

@@ -77,7 +77,7 @@ class Server
 
             header('Content-Type: application/json');
             header('HTTP/1.0 403 Forbidden');
-            echo '["Access Forbidden"]';
+            echo '{"error": "Access Forbidden"}';
             exit;
         }
     }
@@ -99,7 +99,7 @@ class Server
             header('WWW-Authenticate: Basic realm="JsonRPC"');
             header('Content-Type: application/json');
             header('HTTP/1.0 401 Unauthorized');
-            echo '["Authentication failed"]';
+            echo '{"error": "Authentication failed"}';
             exit;
         }
     }

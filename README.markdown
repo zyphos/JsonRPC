@@ -10,6 +10,7 @@ Features
 - The server support batch requests and notifications
 - Authentication and IP based client restrictions
 - Minimalist: there is only 2 files
+- Fully unit tested
 - License: Unlicense http://unlicense.org/
 
 Requirements
@@ -115,7 +116,6 @@ var_dump($result);
 ```
 
 Arguments are called in the right order.
-If there is a Json-RPC protocol error, the `execute()` method throw an exception `BadFunctionCallException`.
 
 Examples with shortcut methods:
 
@@ -135,6 +135,35 @@ The example above use positional arguments for the request and this one use name
 ```php
 $result = $client->random(['end' => 10, 'start' => 1]);
 ```
+
+### Client batch requests
+
+Call several procedures in a single HTTP request:
+
+```php
+<?php
+
+use JsonRPC\Client;
+
+$client = new Client('http://localhost/server.php');
+
+$results = $client->batch();
+                  ->foo(['arg1' => 'bar'])
+                  ->random(1, 100);
+                  ->add(4, 3);
+                  ->execute('add', [2, 5])
+                  ->send();
+
+print_r($results);
+```
+
+All results are stored at the same position of the call.
+
+### Client exceptions
+
+- `BadFunctionCallException`: Procedure not found on the server
+- `InvalidArgumentException`: Wrong procedure arguments
+- `RuntimeException`: Protocol error
 
 ### Enable client debugging
 
@@ -226,8 +255,7 @@ On the client, set credentials like that:
 use JsonRPC\Client;
 
 $client = new Client('http://localhost/server.php');
-
-// Credentials
 $client->authentication('jsonrpc', 'toto');
-$result = $client->execute('addition', ['a' => 2, 'b' => 2]);
 ```
+
+If the authentication failed, the client throw a RuntimeException.
