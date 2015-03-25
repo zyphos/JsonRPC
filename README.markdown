@@ -147,10 +147,10 @@ use JsonRPC\Client;
 
 $client = new Client('http://localhost/server.php');
 
-$results = $client->batch();
+$results = $client->batch()
                   ->foo(['arg1' => 'bar'])
-                  ->random(1, 100);
-                  ->add(4, 3);
+                  ->random(1, 100)
+                  ->add(4, 3)
                   ->execute('add', [2, 5])
                   ->send();
 
