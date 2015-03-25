@@ -82,6 +82,9 @@ $server->bind('myProcedure', 'Api', 'doSomething');
 // Use a class instance instead of the class name
 $server->bind('mySecondProcedure', new Api, 'doSomething');
 
+// The procedure and the method are the same
+$server->bind('doSomething', 'Api');
+
 echo $server->execute();
 ```
 
