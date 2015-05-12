@@ -333,6 +333,9 @@ class Client
         if ($http_code === 401 || $http_code === 403) {
             throw new RuntimeException('Access denied');
         }
+        if ($http_body === false) {
+            throw new RuntimeException(curl_error($this->ch));
+        }
 
         $response = json_decode($http_body, true);
 
