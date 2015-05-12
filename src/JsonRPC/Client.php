@@ -24,6 +24,15 @@ class Client
     private $url;
 
     /**
+     * If the only argument passed to a function is an array
+     * assume it contains named arguments
+     *
+     * @access public
+     * @var boolean
+     */
+    public $named_arguments = true;
+
+    /**
      * HTTP client timeout
      *
      * @access private
@@ -115,7 +124,7 @@ class Client
     public function __call($method, array $params)
     {
         // Allow to pass an array and use named arguments
-        if (count($params) === 1 && is_array($params[0])) {
+        if ($this->named_arguments && count($params) === 1 && is_array($params[0])) {
             $params = $params[0];
         }
 
