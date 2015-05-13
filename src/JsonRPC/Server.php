@@ -58,6 +58,15 @@ class Server
     private $instances = array();
 
     /**
+     * List of exception classes that should be relayed to client
+     *
+     * @static
+     * @access private
+     * @var array
+     */
+    private $exceptions = array();
+
+    /**
      * Constructor
      *
      * @access public
@@ -151,6 +160,18 @@ class Server
     public function attach($instance)
     {
         $this->instances[] = $instance;
+    }
+
+    /**
+     * Bind an exception
+     * If this exception occurs it is relayed to the client as JSON-RPC error
+     *
+     * @access public
+     * @param  mixed   $exception    Exception class. Defaults to all.
+     */
+    public function attachException($exception = "Exception")
+    {
+        $this->exceptions[] = $exception;
     }
 
     /**
@@ -326,6 +347,24 @@ class Server
                 )),
                 $this->payload
             );
+        }
+        catch (Exception $e) {
+
+            foreach ($this->exceptions as $class)
+            {
+                if ($e instanceof $class)
+                {
+                    return $this->getResponse(array(
+                        'error' => array(
+                            'code' => $e->getCode(),
+                            'message' => $e->getMessage()
+                        )),
+                        $this->payload
+                    );
+                }
+            }
+
+            throw $e;
         }
     }
 
