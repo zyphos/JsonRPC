@@ -262,3 +262,39 @@ $client->authentication('jsonrpc', 'toto');
 ```
 
 If the authentication failed, the client throw a RuntimeException.
+
+### Exceptions
+
+If you want to send an error to the client you can throw an exception.
+You should configure which exceptions should be relayed to the client first:
+
+```php
+<?php
+
+use JsonRPC\Server;
+class MyException extends RuntimeException {};
+
+$server = new Server;
+
+// Exceptions that should be relayed to the client, if they occur
+$server->attachException("MyException");
+
+// Procedures registration
+
+[...]
+
+// Return the response to the client
+echo $server->execute();
+```
+
+Then you can throw that exception inside your procedure:
+
+```
+throw new MyException("An error occured", 123);
+```
+
+To relay all exceptions regardless of type, leave out the exception class name:
+
+```
+$server->attachException();
+```
