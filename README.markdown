@@ -158,8 +158,6 @@ Example with named arguments:
 ```php
 <?php
 
-require 'JsonRPC/Client.php';
-
 use JsonRPC\Client;
 
 $client = new Client('http://localhost/server.php');
@@ -216,7 +214,7 @@ All results are stored at the same position of the call.
 
 - `BadFunctionCallException`: Procedure not found on the server
 - `InvalidArgumentException`: Wrong procedure arguments
-- `RuntimeException`: Protocol error
+- `RuntimeException`: Protocol error, authentication failure or connection failure, the message describe the exact error
 
 ### Enable client debugging
 

@@ -330,11 +330,12 @@ class Client
         $http_body = curl_exec($this->ch);
         $http_code = curl_getinfo($this->ch, CURLINFO_HTTP_CODE);
 
+        if (curl_errno($this->ch)) {
+            throw new RuntimeException(curl_error($this->ch));
+        }
+
         if ($http_code === 401 || $http_code === 403) {
             throw new RuntimeException('Access denied');
-        }
-        if ($http_body === false) {
-            throw new RuntimeException(curl_error($this->ch));
         }
 
         $response = json_decode($http_body, true);
