@@ -12,6 +12,7 @@ use ReflectionMethod;
 
 class InvalidJsonRpcFormat extends Exception {};
 class InvalidJsonFormat extends Exception {};
+class AuthenticationFailure extends Exception {};
 
 /**
  * JsonRPC server class
@@ -33,7 +34,6 @@ class Server
     /**
      * List of procedures
      *
-     * @static
      * @access private
      * @var array
      */
@@ -42,7 +42,6 @@ class Server
     /**
      * List of classes
      *
-     * @static
      * @access private
      * @var array
      */
@@ -51,7 +50,6 @@ class Server
     /**
      * List of instances
      *
-     * @static
      * @access private
      * @var array
      */
@@ -60,11 +58,18 @@ class Server
     /**
      * List of exception classes that should be relayed to client
      *
-     * @static
      * @access private
      * @var array
      */
     private $exceptions = array();
+
+    /**
+     * Method name to execute before the procedure
+     *
+     * @access private
+     * @var string
+     */
+    private $before = '';
 
     /**
      * Constructor
@@ -82,6 +87,55 @@ class Server
     }
 
     /**
+     * Get username
+     *
+     * @access public
+     * @return string
+     */
+    public function getUsername()
+    {
+        return @$_SERVER['PHP_AUTH_USER']; // TODO: handle alternative header
+    }
+
+    /**
+     * Get password
+     *
+     * @access public
+     * @return string
+     */
+    public function getPassword()
+    {
+        return @$_SERVER['PHP_AUTH_PW'];
+    }
+
+    /**
+     * Send authentication failure response
+     *
+     * @access public
+     */
+    public function sendAuthenticationFailureResponse()
+    {
+        header('WWW-Authenticate: Basic realm="JsonRPC"');
+        header('Content-Type: application/json');
+        header('HTTP/1.0 401 Unauthorized');
+        echo '{"error": "Authentication failed"}';
+        exit;
+    }
+
+    /**
+     * Send forbidden response
+     *
+     * @access public
+     */
+    public function sendForbiddenResponse()
+    {
+        header('Content-Type: application/json');
+        header('HTTP/1.0 403 Forbidden');
+        echo '{"error": "Access Forbidden"}';
+        exit;
+    }
+
+    /**
      * IP based client restrictions
      *
      * Return an HTTP error 403 if the client is not allowed
@@ -89,14 +143,10 @@ class Server
      * @access public
      * @param  array   $hosts   List of hosts
      */
-    public function allowHosts(array $hosts) {
-
+    public function allowHosts(array $hosts)
+    {
         if (! in_array($_SERVER['REMOTE_ADDR'], $hosts)) {
-
-            header('Content-Type: application/json');
-            header('HTTP/1.0 403 Forbidden');
-            echo '{"error": "Access Forbidden"}';
-            exit;
+            $this->sendForbiddenResponse();
         }
     }
 
@@ -110,15 +160,8 @@ class Server
      */
     public function authentication(array $users)
     {
-        if (! isset($_SERVER['PHP_AUTH_USER']) ||
-            ! isset($users[$_SERVER['PHP_AUTH_USER']]) ||
-            $users[$_SERVER['PHP_AUTH_USER']] !== $_SERVER['PHP_AUTH_PW']) {
-
-            header('WWW-Authenticate: Basic realm="JsonRPC"');
-            header('Content-Type: application/json');
-            header('HTTP/1.0 401 Unauthorized');
-            echo '{"error": "Authentication failed"}';
-            exit;
+        if (! isset($users[$this->getUsername()]) || $users[$this->getUsername()] !== $this->getPassword()) {
+            $this->sendAuthenticationFailureResponse();
         }
     }
 
@@ -128,10 +171,12 @@ class Server
      * @access public
      * @param  string   $procedure       Procedure name
      * @param  closure  $callback        Callback
+     * @return Server
      */
     public function register($name, Closure $callback)
     {
         $this->callbacks[$name] = $callback;
+        return $this;
     }
 
     /**
@@ -141,6 +186,7 @@ class Server
      * @param  string   $procedure    Procedure name
      * @param  mixed    $class        Class name or instance
      * @param  string   $method       Procedure name
+     * @return Server
      */
     public function bind($procedure, $class, $method = '')
     {
@@ -149,6 +195,7 @@ class Server
         }
 
         $this->classes[$procedure] = array($class, $method);
+        return $this;
     }
 
     /**
@@ -156,10 +203,12 @@ class Server
      *
      * @access public
      * @param  mixed   $instance    Instance name
+     * @return Server
      */
     public function attach($instance)
     {
         $this->instances[] = $instance;
+        return $this;
     }
 
     /**
@@ -168,10 +217,25 @@ class Server
      *
      * @access public
      * @param  mixed   $exception    Exception class. Defaults to all.
+     * @return Server
      */
-    public function attachException($exception = "Exception")
+    public function attachException($exception = 'Exception')
     {
         $this->exceptions[] = $exception;
+        return $this;
+    }
+
+    /**
+     * Attach a method that will be called before the procedure
+     *
+     * @access public
+     * @param  string  $before
+     * @return Server
+     */
+    public function before($before)
+    {
+        $this->before = $before;
+        return $this;
     }
 
     /**
@@ -348,12 +412,13 @@ class Server
                 $this->payload
             );
         }
+        catch (AuthenticationFailure $e) {
+            $this->sendAuthenticationFailureResponse();
+        }
         catch (Exception $e) {
 
-            foreach ($this->exceptions as $class)
-            {
-                if ($e instanceof $class)
-                {
+            foreach ($this->exceptions as $class) {
+                if ($e instanceof $class) {
                     return $this->getResponse(array(
                         'error' => array(
                             'code' => $e->getCode(),
@@ -427,6 +492,13 @@ class Server
      */
     public function executeMethod($class, $method, $params)
     {
+        $instance = is_string($class) ? new $class : $class;
+
+        // Execute before action
+        if (! empty($this->before) && method_exists($instance, $this->before)) {
+            $instance->{$this->before}($this->getUsername(), $this->getPassword(), $class, $method);
+        }
+
         $reflection = new ReflectionMethod($class, $method);
 
         $arguments = $this->getArguments(
@@ -436,10 +508,7 @@ class Server
             $reflection->getNumberOfParameters()
         );
 
-        return $reflection->invokeArgs(
-            is_string($class) ? new $class : $class,
-            $arguments
-        );
+        return $reflection->invokeArgs($instance, $arguments);
     }
 
     /**
