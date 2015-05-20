@@ -72,6 +72,22 @@ class Server
     private $before = '';
 
     /**
+     * Username
+     *
+     * @access private
+     * @var string
+     */
+    private $username = '';
+
+    /**
+     * Password
+     *
+     * @access private
+     * @var string
+     */
+    private $password = '';
+
+    /**
      * Constructor
      *
      * @access public
@@ -84,6 +100,29 @@ class Server
         $this->payload = $payload;
         $this->callbacks = $callbacks;
         $this->classes = $classes;
+
+
+    }
+
+    /**
+     * Define alternative authentication header
+     *
+     * @access public
+     * @param  string   $header   Header name
+     * @return Server
+     */
+    public function setAuthenticationHeader($header)
+    {
+        if (! empty($header)) {
+
+            $header = 'HTTP_'.str_replace('-', '_', strtoupper($header));
+
+            if (isset($_SERVER[$header])) {
+                list($this->username, $this->password) = explode(':', @base64_decode($_SERVER[$header]));
+            }
+        }
+
+        return $this;
     }
 
     /**
@@ -94,7 +133,7 @@ class Server
      */
     public function getUsername()
     {
-        return @$_SERVER['PHP_AUTH_USER']; // TODO: handle alternative header
+        return $this->username ?: @$_SERVER['PHP_AUTH_USER'];
     }
 
     /**
@@ -105,7 +144,7 @@ class Server
      */
     public function getPassword()
     {
-        return @$_SERVER['PHP_AUTH_PW'];
+        return $this->password ?: @$_SERVER['PHP_AUTH_PW'];
     }
 
     /**
@@ -157,12 +196,15 @@ class Server
      *
      * @access public
      * @param  array   $users   Map of username/password
+     * @return Server
      */
     public function authentication(array $users)
     {
         if (! isset($users[$this->getUsername()]) || $users[$this->getUsername()] !== $this->getPassword()) {
             $this->sendAuthenticationFailureResponse();
         }
+
+        return $this;
     }
 
     /**
@@ -446,7 +488,7 @@ class Server
         if (isset($this->callbacks[$procedure])) {
             return $this->executeCallback($this->callbacks[$procedure], $params);
         }
-        else if (isset($this->classes[$procedure])) {
+        else if (isset($this->classes[$procedure]) && method_exists($this->classes[$procedure][0], $this->classes[$procedure][1])) {
             return $this->executeMethod($this->classes[$procedure][0], $this->classes[$procedure][1], $params);
         }
 
@@ -496,7 +538,7 @@ class Server
 
         // Execute before action
         if (! empty($this->before) && method_exists($instance, $this->before)) {
-            $instance->{$this->before}($this->getUsername(), $this->getPassword(), $class, $method);
+            $instance->{$this->before}($this->getUsername(), $this->getPassword(), get_class($class), $method);
         }
 
         $reflection = new ReflectionMethod($class, $method);
