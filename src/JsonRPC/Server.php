@@ -383,7 +383,7 @@ class Server
                 $server->setPayload($payload);
                 $response = $server->execute();
 
-                if ($response) {
+                if (! empty($response)) {
                     $responses[] = $response;
                 }
             }
