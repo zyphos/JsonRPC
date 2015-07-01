@@ -3,6 +3,8 @@ JsonRPC PHP Client and Server
 
 A simple Json-RPC client/server that just works.
 
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/fguillot/JsonRPC/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/fguillot/JsonRPC/?branch=master)
+
 Features
 --------
 
@@ -22,7 +24,7 @@ Requirements
 Author
 ------
 
-[Frédéric Guillot](http://fredericguillot.com)
+Frédéric Guillot
 
 Installation with Composer
 --------------------------
