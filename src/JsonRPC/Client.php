@@ -252,12 +252,12 @@ class Client
      * Throw an exception according the RPC error
      *
      * @access public
-     * @param  integer    $code
+     * @param  array   $error
      * @throws BadFunctionCallException
      * @throws InvalidArgumentException
      * @throws RuntimeException
      */
-    public function handleRpcErrors($error)
+    public function handleRpcErrors(array $error)
     {
         switch ($error['code']) {
             case -32601:

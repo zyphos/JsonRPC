@@ -90,7 +90,7 @@ class Server
      * Constructor
      *
      * @access public
-     * @param  string    $payload
+     * @param  string    $request
      */
     public function __construct($request = '')
     {
