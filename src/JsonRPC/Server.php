@@ -19,7 +19,6 @@ class AuthenticationFailure extends Exception {};
  *
  * @package JsonRPC
  * @author  Frederic Guillot
- * @license Unlicense http://unlicense.org/
  */
 class Server
 {
@@ -27,9 +26,9 @@ class Server
      * Data received from the client
      *
      * @access private
-     * @var string
+     * @var array
      */
-    private $payload;
+    private $payload = array();
 
     /**
      * List of procedures
@@ -91,17 +90,28 @@ class Server
      * Constructor
      *
      * @access public
-     * @param  string   $payload      Client data
-     * @param  array    $callbacks    Callbacks
-     * @param  array    $classes      Classes
+     * @param  string    $payload
      */
-    public function __construct($payload = '', array $callbacks = array(), array $classes = array())
+    public function __construct($request = '')
+    {
+        if ($request !== '') {
+            $this->payload = json_decode($request, true);
+        }
+        else {
+            $this->payload = json_decode(file_get_contents('php://input'), true);
+        }
+    }
+
+    /**
+     * Set a payload
+     *
+     * @access public
+     * @param  array   $payload
+     * @return Server
+     */
+    public function setPayload(array $payload)
     {
         $this->payload = $payload;
-        $this->callbacks = $callbacks;
-        $this->classes = $classes;
-
-
     }
 
     /**
@@ -215,9 +225,9 @@ class Server
      * @param  closure  $callback        Callback
      * @return Server
      */
-    public function register($name, Closure $callback)
+    public function register($procedure, Closure $callback)
     {
-        $this->callbacks[$name] = $callback;
+        $this->callbacks[$procedure] = $callback;
         return $this;
     }
 
@@ -308,18 +318,10 @@ class Server
     /**
      * Parse the payload and test if the parsed JSON is ok
      *
-     * @access public
+     * @access private
      */
-    public function checkJsonFormat()
+    private function checkJsonFormat()
     {
-        if (empty($this->payload)) {
-            $this->payload = file_get_contents('php://input');
-        }
-
-        if (is_string($this->payload)) {
-            $this->payload = json_decode($this->payload, true);
-        }
-
         if (! is_array($this->payload)) {
             throw new InvalidJsonFormat('Malformed payload');
         }
@@ -328,9 +330,9 @@ class Server
     /**
      * Test if all required JSON-RPC parameters are here
      *
-     * @access public
+     * @access private
      */
-    public function checkRpcFormat()
+    private function checkRpcFormat()
     {
         if (! isset($this->payload['jsonrpc']) ||
             ! isset($this->payload['method']) ||
@@ -377,7 +379,8 @@ class Server
             }
             else {
 
-                $server = new Server($payload, $this->callbacks, $this->classes);
+                $server = clone($this);
+                $server->setPayload($payload);
                 $response = $server->execute();
 
                 if ($response) {
