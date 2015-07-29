@@ -7,7 +7,6 @@ use RuntimeException;
 use BadFunctionCallException;
 use InvalidArgumentException;
 
-class AccessDeniedException extends Exception {};
 class ConnectionFailureException extends Exception {};
 class ServerErrorException extends Exception {};
 
