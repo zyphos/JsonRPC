@@ -15,7 +15,7 @@ Features
 - Authentication and IP based client restrictions
 - Minimalist: there is only 2 files
 - Fully unit tested
-- Requirements: PHP >= 5.3
+- Requirements: PHP >= 5.3.4
 - License: MIT
 
 Author
