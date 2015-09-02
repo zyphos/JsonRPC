@@ -29,7 +29,7 @@ class ClientTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException InvalidArgumentException
+     * @expectedException JsonRPC\ResponseException
      */
     public function testInvalidArgs()
     {
