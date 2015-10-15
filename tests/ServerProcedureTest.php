@@ -143,6 +143,6 @@ class ServerProcedureTest extends PHPUnit_Framework_TestCase
     public function testInvalidResponse()
     {
         $server = new Server;
-        $server->getResponse([pack("H*", 'c32e')],array('id'=>1));
+        $server->getResponse(array(pack("H*", 'c32e')),array('id'=>1));
     }
 }
