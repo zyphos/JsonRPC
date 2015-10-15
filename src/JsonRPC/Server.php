@@ -314,12 +314,12 @@ class Server
         $response = array_merge($response, $data);
 
         @header('Content-Type: application/json');
+
         $encodedResponse = json_encode($response);
-        if(!$encodedResponse)
+        $jsonError = json_last_error();
+        if($jsonError !== JSON_ERROR_NONE)
         {
-            $error = json_last_error();
-            $errorMessage = 'Unknown';
-            switch (json_last_error()) {
+            switch ($jsonError) {
                 case JSON_ERROR_NONE:
                     $errorMessage = 'No errors';
                     break;
@@ -342,7 +342,7 @@ class Server
                     $errorMessage = 'Unknown error';
                     break;
             }
-            throw new ResponseEncodingFailure($errorMessage,$error);
+            throw new ResponseEncodingFailure($errorMessage,$jsonError);
         }
         return $encodedResponse;
     }
