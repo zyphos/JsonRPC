@@ -13,6 +13,7 @@ use ReflectionMethod;
 class InvalidJsonRpcFormat extends Exception {};
 class InvalidJsonFormat extends Exception {};
 class AuthenticationFailure extends Exception {};
+class ResponseEncodingFailure extends Exception {};
 
 /**
  * JsonRPC server class
@@ -294,9 +295,10 @@ class Server
      * Return the response to the client
      *
      * @access public
-     * @param  array    $data      Data to send to the client
-     * @param  array    $payload   Incoming data
+     * @param  array $data Data to send to the client
+     * @param  array $payload Incoming data
      * @return string
+     * @throws ResponseEncodingFailure
      */
     public function getResponse(array $data, array $payload = array())
     {
@@ -312,7 +314,37 @@ class Server
         $response = array_merge($response, $data);
 
         @header('Content-Type: application/json');
-        return json_encode($response);
+
+        $encodedResponse = json_encode($response);
+        $jsonError = json_last_error();
+        if($jsonError !== JSON_ERROR_NONE)
+        {
+            switch ($jsonError) {
+                case JSON_ERROR_NONE:
+                    $errorMessage = 'No errors';
+                    break;
+                case JSON_ERROR_DEPTH:
+                    $errorMessage = 'Maximum stack depth exceeded';
+                    break;
+                case JSON_ERROR_STATE_MISMATCH:
+                    $errorMessage = 'Underflow or the modes mismatch';
+                    break;
+                case JSON_ERROR_CTRL_CHAR:
+                    $errorMessage = 'Unexpected control character found';
+                    break;
+                case JSON_ERROR_SYNTAX:
+                    $errorMessage = 'Syntax error, malformed JSON';
+                    break;
+                case JSON_ERROR_UTF8:
+                    $errorMessage = 'Malformed UTF-8 characters, possibly incorrectly encoded';
+                    break;
+                default:
+                    $errorMessage = 'Unknown error';
+                    break;
+            }
+            throw new ResponseEncodingFailure($errorMessage,$jsonError);
+        }
+        return $encodedResponse;
     }
 
     /**
@@ -453,6 +485,16 @@ class Server
                 'error' => array(
                     'code' => -32602,
                     'message' => 'Invalid params'
+                )),
+                $this->payload
+            );
+        }
+        catch(ResponseEncodingFailure $e){
+            return $this->getResponse(array(
+                'error' => array(
+                    'code' => -32603,
+                    'message' => 'Internal error',
+                    'data' => $e->getMessage()
                 )),
                 $this->payload
             );
