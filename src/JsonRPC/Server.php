@@ -6,7 +6,6 @@ use Closure;
 use BadFunctionCallException;
 use Exception;
 use InvalidArgumentException;
-use LogicException;
 use ReflectionFunction;
 use ReflectionMethod;
 
