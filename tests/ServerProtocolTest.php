@@ -113,6 +113,22 @@ class ServerProtocolTest extends PHPUnit_Framework_TestCase
         );
     }
 
+    public function testInvalidResponse_MalformedCharacters()
+    {
+        $server = new Server('{"jsonrpc": "2.0", "method": "invalidresponse","id": 1}');
+
+        $invalidresponse = function() {
+            return pack("H*" ,'c32e');
+        };
+
+        $server->register('invalidresponse', $invalidresponse);
+
+        $this->assertEquals(
+            json_decode('{"jsonrpc": "2.0","id": 1, "error": {"code": -32603, "message": "Internal error","data": "Malformed UTF-8 characters, possibly incorrectly encoded"}}', true),
+            json_decode($server->execute(), true)
+        );
+    }
+
 
     public function testBatchInvalidJson()
     {
