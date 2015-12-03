@@ -406,7 +406,7 @@ class Client
     private function getResult(array $payload)
     {
         if (isset($payload['error']['code'])) {
-            $this->handleRpcErrors($payload['error']);
+            return $this->handleRpcErrors($payload['error']);
         }
 
         return isset($payload['result']) ? $payload['result'] : null;
