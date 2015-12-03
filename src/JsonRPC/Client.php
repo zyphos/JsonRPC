@@ -105,6 +105,14 @@ class Client
     public $ssl_verify_peer = true;
 
     /**
+     * Do not immediately throw an exception on error. Return it instead.
+     *
+     * @access public
+     * @var boolean
+     */
+    public $suppress_errors = false;
+
+    /**
      * Constructor
      *
      * @access public
@@ -251,7 +259,8 @@ class Client
      * Throw an exception according the RPC error
      *
      * @access public
-     * @param  array   $error
+     * @param  array $error
+     * @return Exception
      * @throws BadFunctionCallException
      * @throws InvalidArgumentException
      * @throws RuntimeException
@@ -259,22 +268,30 @@ class Client
      */
     public function handleRpcErrors(array $error)
     {
-        switch ($error['code']) {
-            case -32700:
-                throw new RuntimeException('Parse error: '. $error['message']);
-            case -32600:
-                throw new RuntimeException('Invalid Request: '. $error['message']);
-            case -32601:
-                throw new BadFunctionCallException('Procedure not found: '. $error['message']);
-            case -32602:
-                throw new InvalidArgumentException('Invalid arguments: '. $error['message']);
-            default:
-                throw new ResponseException(
-                    $error['message'],
-                    $error['code'],
-                    null,
-                    isset($error['data']) ? $error['data'] : null
-                );
+        try {
+            switch ($error['code']) {
+                case -32700:
+                    throw new RuntimeException('Parse error: '. $error['message']);
+                case -32600:
+                    throw new RuntimeException('Invalid Request: '. $error['message']);
+                case -32601:
+                    throw new BadFunctionCallException('Procedure not found: '. $error['message']);
+                case -32602:
+                    throw new InvalidArgumentException('Invalid arguments: '. $error['message']);
+                default:
+                    throw new ResponseException(
+                        $error['message'],
+                        $error['code'],
+                        null,
+                        isset($error['data']) ? $error['data'] : null
+                    );
+            }
+        } catch (\Exception $ex) {
+            if (true === $this->suppress_errors) {
+                return $ex;
+            }
+
+            throw $ex;
         }
     }
 
@@ -308,8 +325,9 @@ class Client
      * Do the HTTP request
      *
      * @access private
-     * @param  array   $payload
+     * @param  array $payload
      * @return array
+     * @throws ConnectionFailureException
      */
     private function doRequest(array $payload)
     {
