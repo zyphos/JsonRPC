@@ -210,6 +210,9 @@ print_r($results);
 All results are stored at the same position of the call.
 
 ### Client exceptions
+Client exceptions are normally thrown when an error is returned by the server. You can change this behaviour by
+using the 'suppress_errors' option which causes exceptions to be returned. This can be extremely useful when
+executing the batch request. 
 
 - `BadFunctionCallException`: Procedure not found on the server
 - `InvalidArgumentException`: Wrong procedure arguments

@@ -60,6 +60,14 @@ class Client
     private $password;
 
     /**
+     * Do not immediately throw an exception on error. Return it instead.
+     *
+     * @access public
+     * @var boolean
+     */
+    private $suppress_errors = false;
+
+    /**
      * True for a batch request
      *
      * @access public
@@ -105,26 +113,20 @@ class Client
     public $ssl_verify_peer = true;
 
     /**
-     * Do not immediately throw an exception on error. Return it instead.
-     *
-     * @access public
-     * @var boolean
-     */
-    public $suppress_errors = false;
-
-    /**
      * Constructor
      *
      * @access public
-     * @param  string    $url         Server URL
-     * @param  integer   $timeout     HTTP timeout
-     * @param  array     $headers     Custom HTTP headers
+     * @param  string    $url                 Server URL
+     * @param  integer   $timeout             HTTP timeout
+     * @param  array     $headers             Custom HTTP headers
+     * @param  bool      $suppress_errors     Suppress exceptions
      */
-    public function __construct($url, $timeout = 3, $headers = array())
+    public function __construct($url, $timeout = 3, $headers = array(), $suppress_errors = false)
     {
         $this->url = $url;
         $this->timeout = $timeout;
         $this->headers = array_merge($this->headers, $headers);
+        $this->suppress_errors = !!$suppress_errors;
     }
 
     /**
