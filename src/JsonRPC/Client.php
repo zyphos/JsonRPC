@@ -320,14 +320,14 @@ class Client
         }
 
         $metadata = stream_get_meta_data($stream);
-        $this->handleHttpErrors($metadata['wrapper_data']);
-
         $response = json_decode(stream_get_contents($stream), true);
 
         if ($this->debug) {
             error_log('==> Request: '.PHP_EOL.json_encode($payload, JSON_PRETTY_PRINT));
             error_log('==> Response: '.PHP_EOL.json_encode($response, JSON_PRETTY_PRINT));
         }
+
+        $this->handleHttpErrors($metadata['wrapper_data']);
 
         return is_array($response) ? $response : array();
     }
