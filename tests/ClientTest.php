@@ -100,6 +100,13 @@ class ClientTest extends PHPUnit_Framework_TestCase
         $client->handleHttpErrors(array('HTTP/1.0 301 Moved Permantenly', 'Connection: close', 'HTTP/1.0 401 Unauthorized'));
     }
 
+    public function testSuppressException()
+    {
+        $client = new Client('http://localhost/', 3, array(), true);
+        $exception = $client->parseResponse(json_decode('{"jsonrpc": "2.0", "error": {"code": -32600, "message": "Invalid Request"}, "id": null}', true));
+        $this->assertInstanceOf('\RuntimeException', $exception);
+    }
+
     public function testPrepareRequest()
     {
         $client = new Client('http://localhost/');

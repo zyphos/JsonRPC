@@ -60,6 +60,14 @@ class Client
     private $password;
 
     /**
+     * Do not immediately throw an exception on error. Return it instead.
+     *
+     * @access public
+     * @var boolean
+     */
+    private $suppress_errors = false;
+
+    /**
      * True for a batch request
      *
      * @access public
@@ -108,15 +116,17 @@ class Client
      * Constructor
      *
      * @access public
-     * @param  string    $url         Server URL
-     * @param  integer   $timeout     HTTP timeout
-     * @param  array     $headers     Custom HTTP headers
+     * @param  string    $url                 Server URL
+     * @param  integer   $timeout             HTTP timeout
+     * @param  array     $headers             Custom HTTP headers
+     * @param  bool      $suppress_errors     Suppress exceptions
      */
-    public function __construct($url, $timeout = 3, $headers = array())
+    public function __construct($url, $timeout = 3, $headers = array(), $suppress_errors = false)
     {
         $this->url = $url;
         $this->timeout = $timeout;
         $this->headers = array_merge($this->headers, $headers);
+        $this->suppress_errors = !!$suppress_errors;
     }
 
     /**
@@ -251,7 +261,8 @@ class Client
      * Throw an exception according the RPC error
      *
      * @access public
-     * @param  array   $error
+     * @param  array $error
+     * @return Exception
      * @throws BadFunctionCallException
      * @throws InvalidArgumentException
      * @throws RuntimeException
@@ -259,22 +270,30 @@ class Client
      */
     public function handleRpcErrors(array $error)
     {
-        switch ($error['code']) {
-            case -32700:
-                throw new RuntimeException('Parse error: '. $error['message']);
-            case -32600:
-                throw new RuntimeException('Invalid Request: '. $error['message']);
-            case -32601:
-                throw new BadFunctionCallException('Procedure not found: '. $error['message']);
-            case -32602:
-                throw new InvalidArgumentException('Invalid arguments: '. $error['message']);
-            default:
-                throw new ResponseException(
-                    $error['message'],
-                    $error['code'],
-                    null,
-                    isset($error['data']) ? $error['data'] : null
-                );
+        try {
+            switch ($error['code']) {
+                case -32700:
+                    throw new RuntimeException('Parse error: '. $error['message']);
+                case -32600:
+                    throw new RuntimeException('Invalid Request: '. $error['message']);
+                case -32601:
+                    throw new BadFunctionCallException('Procedure not found: '. $error['message']);
+                case -32602:
+                    throw new InvalidArgumentException('Invalid arguments: '. $error['message']);
+                default:
+                    throw new ResponseException(
+                        $error['message'],
+                        $error['code'],
+                        null,
+                        isset($error['data']) ? $error['data'] : null
+                    );
+            }
+        } catch (\Exception $ex) {
+            if (true === $this->suppress_errors) {
+                return $ex;
+            }
+
+            throw $ex;
         }
     }
 
@@ -308,8 +327,9 @@ class Client
      * Do the HTTP request
      *
      * @access private
-     * @param  array   $payload
+     * @param  array $payload
      * @return array
+     * @throws ConnectionFailureException
      */
     private function doRequest(array $payload)
     {
@@ -386,7 +406,7 @@ class Client
     private function getResult(array $payload)
     {
         if (isset($payload['error']['code'])) {
-            $this->handleRpcErrors($payload['error']);
+            return $this->handleRpcErrors($payload['error']);
         }
 
         return isset($payload['result']) ? $payload['result'] : null;
