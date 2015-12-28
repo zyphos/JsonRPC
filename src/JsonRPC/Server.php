@@ -316,8 +316,8 @@ class Server
 
         $encodedResponse = json_encode($response);
         $jsonError = json_last_error();
-        if($jsonError !== JSON_ERROR_NONE)
-        {
+
+        if ($jsonError !== JSON_ERROR_NONE) {
             switch ($jsonError) {
                 case JSON_ERROR_NONE:
                     $errorMessage = 'No errors';
@@ -341,8 +341,10 @@ class Server
                     $errorMessage = 'Unknown error';
                     break;
             }
+
             throw new ResponseEncodingFailure($errorMessage,$jsonError);
         }
+
         return $encodedResponse;
     }
 

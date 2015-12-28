@@ -288,12 +288,12 @@ class Client
                         isset($error['data']) ? $error['data'] : null
                     );
             }
-        } catch (\Exception $ex) {
+        } catch (Exception $e) {
             if (true === $this->suppress_errors) {
-                return $ex;
+                return $e;
             }
 
-            throw $ex;
+            throw $e;
         }
     }
 
