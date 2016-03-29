@@ -461,7 +461,7 @@ class Client
      * Set cookies
      *
      * @access public
-     * @param array   $cookie
+     * @param array   $cookies
      * @param boolean   $replace
      */
     public function setCookies(array $cookies, $replace=false)
